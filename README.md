@@ -1,131 +1,76 @@
-Overview
+Movie Review API
 
-  The Movie Review API is a RESTful API that allows users to:
-	Retrieve all movie reviews (GET /movies)
-	Retrieve a specific movie review (GET /movies/:id)
-	Add a new movie review (POST /movies)
-	Update a movie rating (PUT /movies/:id)
-	Delete a movie review (DELETE /movies/:id)
+A secure, RESTful API built with Express.js, MongoDB, and Passport.js for user authentication. It allows users to manage movies and reviews — with full ownership control.
 
-This version uses MongoDB Atlas as the database and Mongoose as the ODM.
+Features
+	User registration and login (with password hashing)
+	JWT-based authentication using Passport.js
+	CRUD operations on movies and reviews
+	Users can only manage their own movies and reviews
+	Environment-based config for sensitive data
 
- Installation & Setup
-      
-    Install Dependencies
-      npm install
-    
-    Run the Server
-      npm run dev
-    
-    If everything works, you’ll see:
-      ✅ Connected to MongoDB Atlas
-      🚀 Server running on http://localhost:5001
+Getting Started
+  Node.js (v18+ recommended)
+	MongoDB Atlas account
+	Postman (or any API client)
+
+Install Dependencies
+  npm install
+
+Set Up Environment Variables
+  Create a .env file in the root with:
+  MONGODB_URI=your_mongodb_atlas_uri
+  JWT_SECRET=your_super_secret_key
+
+  To generate a secure secret key:
+  node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+
+Run the App
+  npm run dev
+
+The server runs at:
+http://localhost:5001
+
 
 API Endpoints
 
-    Retrieve All Movie Reviews
-    Request Type: GET
-	URL: http://localhost:5001/movies
-	Response: [
-      { "_id": "65f1a4c4e0b5bc002a5b1f6d", "title": "Inception", "rating": 9, "releaseYear": 2010 },
-      { "_id": "65f1a4d2e0b5bc002a5b1f6e", "title": "Interstellar", "rating": 8.5, "releaseYear": 2014 }
-    ]
+Auth Routes
 
-    Retrieve a Single Movie Review
-    Request Type: GET
-	URL: http://localhost:5001/movies/1
-	Response: (If Found){
-    "_id": "65f1a4c4e0b5bc002a5b1f6d",
-    "title": "Inception",
-    "rating": 9,
-    "releaseYear": 2010
-    }
-    If Not Found:
-    {
-    "message": "Movie not found"
-    }
+Method	    Route	                 Description
+POST	      /api/auth/register	   Register new user
+POST	      /api/auth/login	       Login, returns JWT token
 
-    Add a New Movie Review
-    Request Type: POST
-	URL: http://localhost:5001/movies
-	Request Body (JSON): {
-    "title": "The Dark Knight",
-    "rating": 9.5,
-    "releaseYear": 2008
-    }
-    Response: {
-    "message": "Movie added successfully",
-    "data": {
-    "_id": "65f1a4d9e0b5bc002a5b1f6f",
-    "title": "The Dark Knight",
-    "rating": 9.5,
-    "releaseYear": 2008
-    }
-    }
+Movie Routes
 
-    Update a Movie Rating
-    Request Type: PUT
-	URL: http://localhost:5001/movies/1
-	Request Body (JSON): {
-    "rating": 9.8
-    }
-    Response: {
-    "message": "Movie updated successfully",
-    "data": {
-    "_id": "65f1a4c4e0b5bc002a5b1f6d",
-    "title": "Inception",
-    "rating": 9.8,
-    "releaseYear": 2010
-    }
-    }
+Method	     Route	             Description	         Auth Required
+GET	         /api/movies	       Get all movies	           ❌
+GET	         /api/movies/mine	   Get your own movies	     ✅
+GET	         /api/movies/:id	   Get movie by ID	         ❌
+POST	       /api/movies	       Add a new movie	         ✅
+PUT	         /api/movies/:id	   Update your movie	       ✅
+DELETE	     /api/movies/:id	   Delete your movie	       ✅
 
-    Delete a Movie Review
-	Request Type: DELETE
-	URL: http://localhost:5001/movies/1
-	Response: {
-    "message": "Movie deleted successfully"
-    }
+Review Routes
 
-    Project Structure
+Method	     Route	                   Description	              Auth Required
+GET	         /api/reviews/:movieId	   Get reviews for a movie	       ❌ 
+POST	       /api/reviews	             Add a review to a movie	       ✅
+PUT	         /api/reviews/:reviewId	   Update your review	             ✅
+DELETE	     /api/reviews/:reviewId	   Delete your review	             ✅
 
-    movie-review-api/
-    │── node_modules/          # Installed dependencies
-    │── src/
-    │   ├── controllers/       # Handles API logic
-    │   │   ├── movieController.js
-    │   ├── models/            # Defines database schemas
-    │   │   ├── movie.js
-    │   ├── routes/            # Defines API routes
-    │   │   ├── moviesRoute.js
-    │   ├── config/            # Database connection
-    │   │   ├── db.js
-    │   ├── middleware/        # Custom middleware (error handling, logging, etc.)
-    │   ├── app.js             # Express app setup (middleware, routes)
-    │   ├── server.js          # Main server file (connects to MongoDB, starts Express)
-    │── .env                   # Environment variables (MongoDB URI, port)
-    │── .gitignore             # Ignore files (node_modules, .env)
-    │── package.json           # Project dependencies
-    │── README.md              # Project documentation
+Authentication Overview
 
-    Technologies Used
+	Login returns a JWT token
+	Include it in the Authorization header for protected routes:
+  Authorization: Bearer YOUR_TOKEN_HERE
 
-    Node.js - JavaScript runtime
-	  Express.js - Web framework for handling API requests
-	  MongoDB Atlas - Cloud database for storing movie reviews
-	  Mongoose - ODM library for MongoDB
-	  dotenv - Manages environment variables
-	  morgan - Logs API requests for debugging
+Project Structure
 
-    How to Test the API
-
-    Using Postman
-	  1.Open Postman and enter the API URL (http://localhost:5001/movies).
-	  2.Choose the HTTP method (GET, POST, PUT, DELETE).
-	  3.Send the request and check the response.
-
-    Error Handling
-
-    Error Type	                       Response
-    Invalid Movie ID                   { "message": "Movie not found" } (404)
-    Missing Fields in POST /movies     { "message": "Validation error" } (400)
-    Database Connection Failure        { "message": "Server error" } (500)
+src/
+├── config/           # passport.js, db.js
+├── controllers/      # Logic for movies, reviews, auth
+├── middleware/       # AuthGuard using passport
+├── models/           # Mongoose models (User, Movie, Review)
+├── routes/           # Express route definitions
+├── app.js            # Express setup
+└── server.js         # Entry point
