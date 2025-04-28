@@ -26,4 +26,15 @@ app.use("/auth", authRouter);       // Auth routes: register, login
 app.use("/movies", movieRouter);    // Movie CRUD routes
 app.use("/reviews", reviewRouter);  // Review CRUD routes
 
+// Basic Health Check Route for Vercel Deployment
+app.get('/health', (req, res) => {
+    res.status(200).json({
+      status: 'OK',
+      message: 'Server is running',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development'
+    });
+  });
+
 export default app;
